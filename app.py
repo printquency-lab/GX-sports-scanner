@@ -3,7 +3,16 @@ from datetime import datetime
 
 import requests
 import streamlit as st
-from streamlit_qrcode_scanner import qrcode_scanner
+
+try:
+    from streamlit_qrcode_scanner import qrcode_scanner
+except ModuleNotFoundError:
+    st.set_page_config(page_title="GX Sports Marshal Scanner", page_icon="✅")
+    st.error(
+        "The QR scanner component is not installed. Confirm that requirements.txt "
+        "is in the same repository folder as app.py, then reboot the Streamlit app."
+    )
+    st.stop()
 
 
 st.set_page_config(
