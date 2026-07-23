@@ -1,8 +1,42 @@
 import html
+import importlib.util
 from datetime import datetime
+from pathlib import Path
 
 import requests
 import streamlit as st
+
+
+def configure_qr_scanner_frame():
+    """Correct the fixed 2:1 scan box shipped by scanner component 0.1.2."""
+    specification = importlib.util.find_spec("streamlit_qrcode_scanner")
+    if not specification or not specification.origin:
+        return
+
+    frontend_file = (
+        Path(specification.origin).resolve().parent / "frontend" / "main.js"
+    )
+    try:
+        source = frontend_file.read_text(encoding="utf-8")
+        rectangular_frame = (
+            "const config = { fps: 10, qrbox: { width: 2*(height-10), "
+            "height: height-10 } };"
+        )
+        square_frame = (
+            "const config = { fps: 10, qrbox: { width: 2*(height-10), "
+            "height: 2*(height-10) } };"
+        )
+        if rectangular_frame in source:
+            frontend_file.write_text(
+                source.replace(rectangular_frame, square_frame, 1),
+                encoding="utf-8",
+            )
+    except OSError:
+        # Import still proceeds so a read-only runtime does not stop check-in.
+        pass
+
+
+configure_qr_scanner_frame()
 
 try:
     from streamlit_qrcode_scanner import qrcode_scanner
